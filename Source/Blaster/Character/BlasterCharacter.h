@@ -4,12 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
 
 #include "BlasterCharacter.generated.h"
 
 
 UCLASS()
-class BLASTER_API ABlasterCharacter : public ACharacter {
+class BLASTER_API ABlasterCharacter : public ACharacter{
 	GENERATED_BODY()
 
 public:
@@ -32,6 +34,34 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+public:
+	// Camera IMC
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "EnhancedInput|Camera")
+	TObjectPtr<UInputMappingContext> CameraInputMappingContext;
+	// Look IA
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "EnhancedInput|Camera|Bases")
+	TObjectPtr<UInputAction> ControlYawAction;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "EnhancedInput|Camera|Bases")
+	TObjectPtr<UInputAction> ControlPitchAction;
+
+	// Movement IMC
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "EnhancedInput|Movement")
+	TObjectPtr<UInputMappingContext> MovementInputMappingContext;
+	// Move IA
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "EnhancedInput|Movement|Bases")
+	TObjectPtr<UInputAction> MoveForwardAction;
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "EnhancedInput|Movement|Bases")
+	TObjectPtr<UInputAction> MoveRightAction;
+
+protected:
+	// Look IA
+	void ControlYaw(const FInputActionValue &Value);
+	void ControlPitch(const FInputActionValue &Value);
+	// Move IA
+	void MoveForward(const FInputActionValue &Value);
+	void MoveRight(const FInputActionValue &Value);
+
+public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 };

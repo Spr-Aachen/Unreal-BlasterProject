@@ -28,12 +28,14 @@ ABlasterCharacter::ABlasterCharacter()
 	FollowCamera->bUsePawnControlRotation = false;
 }
 
+
 // Called when the game starts or when spawned
 void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
+
 
 // Called every frame
 void ABlasterCharacter::Tick(float DeltaTime)
@@ -42,10 +44,66 @@ void ABlasterCharacter::Tick(float DeltaTime)
 
 }
 
+
+void ABlasterCharacter::ControlYaw(const FInputActionValue &Value){
+	AddControllerYawInput(Value.Get<float>());
+}
+
+
+void ABlasterCharacter::ControlPitch(const FInputActionValue &Value){
+	AddControllerPitchInput(Value.Get<float>());
+}
+
+
+void ABlasterCharacter::MoveForward(const FInputActionValue &Value){
+	// Get the forward vector from the controller's rotation
+	const FRotator Rotation = Controller->GetControlRotation();
+	const FRotator YawRotation(0, Rotation.Yaw, 0);
+	// Get forward vector
+	const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	// Apply movement
+	AddMovementInput(Direction, Value.Get<float>());
+}
+
+
+void ABlasterCharacter::MoveRight(const FInputActionValue &Value){
+	// Get the right vector from the controller's rotation
+	const FRotator Rotation = Controller->GetControlRotation();
+	const FRotator YawRotation(0, Rotation.Yaw, 0);
+	// Get right vector
+	const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+	// Apply movement
+	AddMovementInput(Direction, Value.Get<float>());
+}
+
+
 // Called to bind functionality to input
-void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
+void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent){
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	/* Bind IMC(input mapping context)s */
+	// Get PlayerController
+	APlayerController *PlayerController = CastChecked<APlayerController>(GetController());
+	if (PlayerController){
+		// Get EnhancedInputLocalPlayerSubsystem
+		UEnhancedInputLocalPlayerSubsystem *EnhancedInputLocalPlayerSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
+		if (EnhancedInputLocalPlayerSubsystem){
+			// Bind CameraInputMappingContext
+			EnhancedInputLocalPlayerSubsystem->AddMappingContext(CameraInputMappingContext, 0);
+			// Bind MovementInputMappingContext
+			EnhancedInputLocalPlayerSubsystem->AddMappingContext(MovementInputMappingContext, 0);
+		}
+	}
+	/* Bind IA(input action)s */
+	// Get EnhancedInputComponent
+	UEnhancedInputComponent *EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
+	if (EnhancedInputComponent){
+		// Bind look actions
+		EnhancedInputComponent->BindAction(ControlYawAction, ETriggerEvent::Triggered, this, &ABlasterCharacter::ControlYaw);
+		EnhancedInputComponent->BindAction(ControlPitchAction, ETriggerEvent::Triggered, this, &ABlasterCharacter::ControlPitch);
+		// Bind move actions
+		EnhancedInputComponent->BindAction(MoveForwardAction, ETriggerEvent::Triggered, this, &ABlasterCharacter::MoveForward);
+		EnhancedInputComponent->BindAction(MoveRightAction, ETriggerEvent::Triggered, this, &ABlasterCharacter::MoveRight);
+	}
 }
 
