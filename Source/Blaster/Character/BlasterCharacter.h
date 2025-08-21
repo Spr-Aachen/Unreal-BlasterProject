@@ -4,25 +4,25 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+
 #include "BlasterCharacter.generated.h"
 
 
 UCLASS()
-class BLASTER_API ABlasterCharacter : public ACharacter
-{
+class BLASTER_API ABlasterCharacter : public ACharacter {
 	GENERATED_BODY()
-
-private:
-	// Add spring arm
-	UPROPERTY(VisibleAnywhere, Category = Camera)
-	class USpringArmComponent *CameraBoom;
-	// Add camera
-	UPROPERTY(VisibleAnywhere, Category = Camera)
-	class UCameraComponent *FollowCamera;
 
 public:
 	// Sets default values for this character's properties
 	ABlasterCharacter();
+
+private:
+	// Spring arm
+	UPROPERTY(VisibleAnywhere, Category = "CameraComponents")
+	class USpringArmComponent *CameraBoom;
+	// Camera
+	UPROPERTY(VisibleAnywhere, Category = "CameraComponents")
+	class UCameraComponent *FollowCamera;
 
 protected:
 	// Called when the game starts or when spawned
