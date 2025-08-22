@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 
@@ -52,6 +53,15 @@ public:
 	TObjectPtr<UInputAction> MoveForwardAction;
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "EnhancedInput|Movement|Bases")
 	TObjectPtr<UInputAction> MoveRightAction;
+	// Sprint IA
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnhancedInput|Movement|Actions")
+	TObjectPtr<UInputAction> SprintAction;
+    // Crouch IA
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnhancedInput|Movement|Actions")
+    TObjectPtr<class UInputAction> CrouchAction;
+	// Jump IA
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnhancedInput|Movement|Actions")
+	TObjectPtr<UInputAction> JumpAction;
 
 protected:
 	// Look IA
@@ -60,6 +70,24 @@ protected:
 	// Move IA
 	void MoveForward(const FInputActionValue &Value);
 	void MoveRight(const FInputActionValue &Value);
+	// Sprint IA
+	void StartSprint(const FInputActionValue &Value);
+	void StopSprint(const FInputActionValue &Value);
+	// Crouch IA
+	void StartCrouch(const FInputActionValue &Value);
+	void StopCrouch(const FInputActionValue &Value);
+	// Jump IA
+	void StartJump(const FInputActionValue &Value);
+	void StopJump(const FInputActionValue &Value);
+
+private:
+    bool bIsSprinting;
+    float WalkSpeed;
+    UPROPERTY(EditAnywhere, Category = "Movement")
+    float SprintSpeed;
+
+    UPROPERTY(EditAnywhere, Category = "Movement")
+    float CrouchSpeed;
 
 public:
 	// Called to bind functionality to input

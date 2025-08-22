@@ -26,6 +26,16 @@ ABlasterCharacter::ABlasterCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	// Set camera not to be rotated since it's attached to the spring arm
 	FollowCamera->bUsePawnControlRotation = false;
+
+	// Set sprint status
+	bIsSprinting = false;
+	// Set walk speed
+	WalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
+	// Set sprint speed (editable in editor)
+	SprintSpeed = 800.f;
+
+	// Set crouch speed (editable in editor)
+	CrouchSpeed = 300.f;
 }
 
 
@@ -77,6 +87,65 @@ void ABlasterCharacter::MoveRight(const FInputActionValue &Value){
 }
 
 
+void ABlasterCharacter::StartSprint(const FInputActionValue& Value)
+{
+	if (bIsCrouched){
+		UnCrouch();
+	}
+
+	if (!bIsSprinting){
+        bIsSprinting = true;
+        GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+    }
+}
+
+
+void ABlasterCharacter::StopSprint(const FInputActionValue& Value){
+    if (bIsSprinting){
+        bIsSprinting = false;
+        GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+    }
+}
+
+
+void ABlasterCharacter::StartCrouch(const FInputActionValue& Value){
+    if (bIsSprinting){
+        bIsSprinting = false;
+        GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+    }
+
+    Crouch();
+
+    GetCharacterMovement()->MaxWalkSpeed = CrouchSpeed;
+}
+
+
+void ABlasterCharacter::StopCrouch(const FInputActionValue& Value){
+    UnCrouch();
+
+    if (bIsSprinting){
+        GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+    }
+    else{
+        GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+    }
+}
+
+
+void ABlasterCharacter::StartJump(const FInputActionValue& Value){
+	if (bIsCrouched){
+		UnCrouch();
+	}
+
+	Jump();
+}
+
+
+void ABlasterCharacter::StopJump(const FInputActionValue& Value){
+    StopJumping();
+}
+
+
 // Called to bind functionality to input
 void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent){
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -104,6 +173,15 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		// Bind move actions
 		EnhancedInputComponent->BindAction(MoveForwardAction, ETriggerEvent::Triggered, this, &ABlasterCharacter::MoveForward);
 		EnhancedInputComponent->BindAction(MoveRightAction, ETriggerEvent::Triggered, this, &ABlasterCharacter::MoveRight);
+        // Bind SprintAction
+        EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &ABlasterCharacter::StartSprint);
+        EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ABlasterCharacter::StopSprint);
+		// Bind CrouchAction
+        EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ABlasterCharacter::StartCrouch);
+		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &ABlasterCharacter::StopCrouch);
+		// Bind JumpAction
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ABlasterCharacter::StartJump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ABlasterCharacter::StopJump);
 	}
 }
 
