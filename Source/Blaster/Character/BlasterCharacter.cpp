@@ -27,15 +27,13 @@ ABlasterCharacter::ABlasterCharacter()
 	// Set camera not to be rotated since it's attached to the spring arm
 	FollowCamera->bUsePawnControlRotation = false;
 
-	// Set sprint status
-	bIsSprinting = false;
-	// Set walk speed
-	WalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
-	// Set sprint speed (editable in editor)
-	SprintSpeed = 800.f;
+	// Set character not to rotate along with controller
+	bUseControllerRotationYaw = false;
+	// Set character to orient towards its own movement direction
+	GetCharacterMovement()->bOrientRotationToMovement = true;
 
-	// Set crouch speed (editable in editor)
-	CrouchSpeed = 300.f;
+	// Set character to be able to crouch
+	GetMovementComponent()->GetNavAgentPropertiesRef().bCanCrouch = true;
 }
 
 
@@ -43,7 +41,12 @@ ABlasterCharacter::ABlasterCharacter()
 void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	// Initialize walk speed
+	GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed;
+
+	// Initialize sprint status
+	bIsSprinting = false;
 }
 
 
@@ -66,10 +69,13 @@ void ABlasterCharacter::ControlPitch(const FInputActionValue &Value){
 
 
 void ABlasterCharacter::MoveForward(const FInputActionValue &Value){
+	if (Controller == nullptr){
+		return;
+	}
 	// Get the forward vector from the controller's rotation
 	const FRotator Rotation = Controller->GetControlRotation();
 	const FRotator YawRotation(0, Rotation.Yaw, 0);
-	// Get forward vector
+	// Get direction
 	const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 	// Apply movement
 	AddMovementInput(Direction, Value.Get<float>());
@@ -77,63 +83,76 @@ void ABlasterCharacter::MoveForward(const FInputActionValue &Value){
 
 
 void ABlasterCharacter::MoveRight(const FInputActionValue &Value){
+	if (Controller == nullptr){
+		return;
+	}
 	// Get the right vector from the controller's rotation
 	const FRotator Rotation = Controller->GetControlRotation();
 	const FRotator YawRotation(0, Rotation.Yaw, 0);
-	// Get right vector
+	// Get direction
 	const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 	// Apply movement
 	AddMovementInput(Direction, Value.Get<float>());
 }
 
 
+void ABlasterCharacter::UpdateMovementSpeed(){
+    if (GetCharacterMovement()->IsCrouching()){
+        GetCharacterMovement()->MaxWalkSpeed = DefaultCrouchSpeed;
+    }
+    else if (bIsSprinting){
+        GetCharacterMovement()->MaxWalkSpeed = DefaultSprintSpeed;
+    }
+    else{
+        GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed;
+    }
+}
+
+
 void ABlasterCharacter::StartSprint(const FInputActionValue& Value)
 {
-	if (bIsCrouched){
+	if (GetCharacterMovement()->IsCrouching()){
 		UnCrouch();
+		UpdateMovementSpeed();
 	}
 
 	if (!bIsSprinting){
-        bIsSprinting = true;
-        GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
-    }
+		bIsSprinting = true;
+		UpdateMovementSpeed();
+	}
 }
 
 
 void ABlasterCharacter::StopSprint(const FInputActionValue& Value){
     if (bIsSprinting){
-        bIsSprinting = false;
-        GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-    }
+		bIsSprinting = false;
+		UpdateMovementSpeed();
+	}
 }
 
 
 void ABlasterCharacter::StartCrouch(const FInputActionValue& Value){
     if (bIsSprinting){
-        bIsSprinting = false;
-        GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-    }
+		bIsSprinting = false;
+		UpdateMovementSpeed();
+	}
 
-    Crouch();
-
-    GetCharacterMovement()->MaxWalkSpeed = CrouchSpeed;
+	if (GetCharacterMovement()->IsCrouching()){
+		UnCrouch();
+	}
+	else{
+	Crouch();
+	}
+	UpdateMovementSpeed();
 }
 
 
 void ABlasterCharacter::StopCrouch(const FInputActionValue& Value){
-    UnCrouch();
-
-    if (bIsSprinting){
-        GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
-    }
-    else{
-        GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-    }
 }
 
 
 void ABlasterCharacter::StartJump(const FInputActionValue& Value){
-	if (bIsCrouched){
+	if (GetCharacterMovement()->IsCrouching()){
 		UnCrouch();
 	}
 
@@ -180,7 +199,7 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
         EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ABlasterCharacter::StartCrouch);
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, this, &ABlasterCharacter::StopCrouch);
 		// Bind JumpAction
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ABlasterCharacter::StartJump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ABlasterCharacter::StartJump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ABlasterCharacter::StopJump);
 	}
 }

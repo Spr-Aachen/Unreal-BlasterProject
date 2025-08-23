@@ -63,6 +63,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "EnhancedInput|Movement|Actions")
 	TObjectPtr<UInputAction> JumpAction;
 
+private:
+	// Walk Speed
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float DefaultWalkSpeed = 600.f;
+	// Sprint Speed
+	bool bIsSprinting;
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float DefaultSprintSpeed = 900.f;
+	// Crouch Speed
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float DefaultCrouchSpeed = 300.f;
+
+	// Helper function to update movement speed
+	void UpdateMovementSpeed();
+
 protected:
 	// Look IA
 	void ControlYaw(const FInputActionValue &Value);
@@ -79,15 +94,6 @@ protected:
 	// Jump IA
 	void StartJump(const FInputActionValue &Value);
 	void StopJump(const FInputActionValue &Value);
-
-private:
-    bool bIsSprinting;
-    float WalkSpeed;
-    UPROPERTY(EditAnywhere, Category = "Movement")
-    float SprintSpeed;
-
-    UPROPERTY(EditAnywhere, Category = "Movement")
-    float CrouchSpeed;
 
 public:
 	// Called to bind functionality to input
