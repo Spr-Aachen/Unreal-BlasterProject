@@ -89,6 +89,8 @@ protected:
 	void StartSprint(const FInputActionValue &Value);
 	void StopSprint(const FInputActionValue &Value);
 	// Crouch IA
+	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 	void StartCrouch(const FInputActionValue &Value);
 	void StopCrouch(const FInputActionValue &Value);
 	// Jump IA

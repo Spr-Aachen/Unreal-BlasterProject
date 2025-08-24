@@ -113,7 +113,7 @@ void ABlasterCharacter::StartSprint(const FInputActionValue& Value)
 {
 	if (GetCharacterMovement()->IsCrouching()){
 		UnCrouch();
-		UpdateMovementSpeed();
+		//UpdateMovementSpeed();
 	}
 
 	if (!bIsSprinting){
@@ -131,6 +131,20 @@ void ABlasterCharacter::StopSprint(const FInputActionValue& Value){
 }
 
 
+void ABlasterCharacter::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+{
+    Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
+    UpdateMovementSpeed();
+}
+
+
+void ABlasterCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+{
+    Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
+    UpdateMovementSpeed();
+}
+
+
 void ABlasterCharacter::StartCrouch(const FInputActionValue& Value){
     if (bIsSprinting){
 		bIsSprinting = false;
@@ -141,9 +155,9 @@ void ABlasterCharacter::StartCrouch(const FInputActionValue& Value){
 		UnCrouch();
 	}
 	else{
-	Crouch();
+		Crouch();
 	}
-	UpdateMovementSpeed();
+	//UpdateMovementSpeed();
 }
 
 
